@@ -3,7 +3,7 @@ lib := libuthread.a
 
 # Variables
 targets := queue 
-objs := queue_tester.o queue.o 
+objs := queue_tester.o queue.o uthread.o context.o
 
 CC := gcc
 CFLAGS := -Wall -Wextra -Werror -MMD
@@ -27,8 +27,9 @@ queue: $(objs) #$(lib)
 	@echo "CC $@"
 	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 
-# $(lib): $(objs)
-# 	ar rcs $(lib) $(objs)
+$(lib): $(objs)
+	@echo "AR $@"
+	$(Q)ar rcs $(lib) $(objs)
 
 clean:
 	@echo "CLEAN"
