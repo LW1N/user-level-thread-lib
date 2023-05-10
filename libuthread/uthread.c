@@ -13,8 +13,8 @@
 /* Size of the stack for a thread (in bytes) */
 #define UTHREAD_STACK_SIZE 32768
 
-// 0 -> ready to run , 1 -> running , -1 -> exited
-enum state{ready = 0, running = 1, exited = -1};
+// 0 -> ready to run , 1 -> running , 2 -> blocked, -1 -> exited
+enum state{ready = 0, running = 1, blocked = 2, exited = -1};
 
 // Thread TCB struct to keep track of each thread's components
 struct uthread_tcb {
@@ -193,8 +193,8 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	// Right now current thread is idle thread 
 	cthread->tcb = idle_tcb;
 	// Create queues for waiting, exited, and blocked threads
-	cthread->readyq = queue_create();
-	cthread->zombieq = queue_create();
+	cthread->readyq   = queue_create();
+	cthread->zombieq  = queue_create();
 	cthread->blockedq = queue_create();
 	
 	// Create first initial thread and put in ready queue
@@ -226,7 +226,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	// Destroy queues once done
 	queue_destroy(cthread->readyq); 
 	queue_destroy(cthread->zombieq);
-	queue_destroy(cthread->blockedq)
+	queue_destroy(cthread->blockedq);
 	// Free current thread
 	free(cthread);
 	return 0;
@@ -235,12 +235,34 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 void uthread_block(void)
 {
 	/* TODO Phase 3 */
+	// Next thread in ready queue
+	struct uthread_tcb *ntcb;
+	// Previous running thread
+	struct uthread_tcb *ptcb;
+	// Keep track of previous thread as ptcb
+	ptcb = cthread->tcb;
+	// Grab the next ready thread from the ready queue
+	queue_dequeue(cthread->readyq, (void**)&ntcb);
+	// Set previous thread as blocked
+	cthread->tcb->s = blocked;
+	// Enqueue now blocked thread into the blocked queue
+	queue_enqueue(cthread->blockedq, cthread->tcb);
+	// Next thread will be running
+	ntcb->s = running;
+	// Set current thread as next thread
+	cthread->tcb = ntcb;
+	// Switch to next thread context
+	uthread_ctx_switch(ptcb->context, cthread->tcb->context);
 }
 
 void uthread_unblock(struct uthread_tcb *uthread)
 {
 	/* TODO Phase 3 */
-	uthread->s = 4;
-	return;
+	// Thread is no longer blocked
+	uthread->s = ready;
+	// Thread is put into ready queue and is avaiable to run again
+	queue_enqueue(cthread->readyq, uthread);
+	// Delete thread from blocked queue
+	// queue_delete(cthread->blockedq, uthread);
 }
 
