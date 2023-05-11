@@ -148,9 +148,10 @@ int uthread_create(uthread_func_t func, void *arg)
 int uthread_run(bool preempt, uthread_func_t func, void *arg)
 {
 	/* TODO Phase 2 */
-	if (preempt) {
-    	// do something
-	}
+	
+    // Check for preemption, set up if needed
+	preempt_start(preempt);
+	
 
   	// Set up and allocate space for idle tcb
 	struct uthread_tcb *idle_tcb;
@@ -220,6 +221,10 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 		free(ntcb);
 	}
 
+	// If preemption was required, call stop to end it
+	if(preempt){
+		preempt_stop();
+	}
 	// Free current(now idle) thread stack and context pointers
 	uthread_ctx_destroy_stack(cthread->tcb->stackpointer);
 	free(cthread->tcb->context);
