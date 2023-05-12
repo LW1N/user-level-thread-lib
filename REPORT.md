@@ -50,7 +50,19 @@ verify that there were no issues.
 In order to implement a user-level thread API, we utilized uthread_tcb struct to
 keep track of each thread's thread control block which consists of a pointer to
 the top of the thread's stack, a pointer to it's context, and an integer that
-represents what state the thread is in, ready, running, exited, or blocked. 
+represents what state the thread is in, ready, running, exited, or blocked, and
+a thread struct keeps a pointer to the current executing thread's tcb, a ready
+queue that holds the tcbs of threads that are ready to execute and a zombie 
+queue that holds the tcbs of threads that have exited. A global thread pointer
+allows access for all functions to the current thread's tcb as well as the ready
+and zombie queues.
+
+The thread API consists of several functions. The current function returns the
+current thread's tcb. A yield function utilizes two local tcb structs to keep 
+track of the current thread's tcb, which is now the previous thread and is
+enqueued to the ready queue, and the next thread's tcb, which will be the 
+current thread and is dequeued from the ready queue. The global thread pointer's
+tcb is then adjusted to this next thread's tcb and the context of the 
 
 ## <u>Implementation of Semaphore API:</u>
 
