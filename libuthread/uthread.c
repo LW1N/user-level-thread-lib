@@ -45,31 +45,16 @@ struct uthread_tcb *uthread_current(void)
 
 void uthread_yield(void)
 {
-	// Next thread in queue
-	struct uthread_tcb *ntcb;
-	// Previous running thread
-	struct uthread_tcb *ptcb;
-	// Allocate memory for next thread in queue
-	ntcb = malloc(sizeof *ntcb);
-
-	// If malloc fails, return
-	if(!ntcb){
-		free(ntcb);
-		return;
-	}
-
 	// Keep track of previous thread as ptcb
-	ptcb = cthread->tcb;
+	struct uthread_tcb *ptcb = cthread->tcb;
+
 	// Grab the next ready thread from the ready queue
-	queue_dequeue(cthread->readyq, (void**)&ntcb);
-	// Set current running thread to ready
-	cthread->tcb->s = ready;
+	queue_dequeue(cthread->readyq, (void**)&cthread->tcb);
+	// Set previous thread to ready & current to running
+	ptcb->s = ready;
+	cthread->tcb->s = running;
 	// Enqueue previous thread back in to ready queue
-	queue_enqueue(cthread->readyq, cthread->tcb);
-	// Next thread is now running
-	ntcb->s = running;
-	// Current thread is going to be next thread
-	cthread->tcb = ntcb;
+	queue_enqueue(cthread->readyq, ptcb);
 
 	// Switch from previous to next thread context
 	uthread_ctx_switch(ptcb->context, cthread->tcb->context);
@@ -79,25 +64,18 @@ void uthread_exit(void)
 {
 	// Disable preemption upon entering critical section
 	preempt_disable();
-
-	// Next thread in queue
-	struct uthread_tcb *ntcb;
-	// Previous running thread
-	struct uthread_tcb *ptcb;
-	// Keep track of previous thread as ptcb
-	ptcb = cthread->tcb;
-
-	// Grab the next ready thread from the ready queue
-	queue_dequeue(cthread->readyq, (void**)&ntcb);
-	// Set previous thread as exited
-	cthread->tcb->s = exited;
-	// Enqueue previous exited thread into the zombie queue
-	queue_enqueue(cthread->zombieq, cthread->tcb);
-	// Next thread will be running
-	ntcb->s = running;
-	// Set current thread as next thread
-	cthread->tcb = ntcb;
   
+	// Keep track of previous thread as ptcb
+	struct uthread_tcb *ptcb = cthread->tcb;
+	
+	// Grab the next ready thread from the ready queue
+	queue_dequeue(cthread->readyq, (void**)&cthread->tcb);
+	// Set previous thread as exited & current to running
+	ptcb->s = exited;
+	cthread->tcb->s = running;
+	// Enqueue previous exited thread into the zombie queue
+	queue_enqueue(cthread->zombieq, ptcb);
+	
 	// Switch to next thread context
 	uthread_ctx_switch(ptcb->context, cthread->tcb->context);
 }
@@ -131,7 +109,7 @@ int uthread_create(uthread_func_t func, void *arg)
 	if(uthread_ctx_init(newtcb->context, newtcb->stackpointer, func, arg)){
 		return -1;
 	}
-  
+
 	// Set state to ready
 	newtcb->s = ready;
 	// Enqueue new thread to the ready queue
@@ -205,7 +183,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	// Once all threads have run, disable and stop preemption
 	preempt_disable();
 	preempt_stop();
-  	
+
 	// While loop to free memory and collect exited threads
 	while(queue_length(cthread->zombieq)) {
 		// Grab exited thread and store in ntcb
@@ -233,23 +211,14 @@ void uthread_block(void)
 	// Disable preemption upon entering critical section
 	preempt_disable();
 
-	// Next thread in ready queue
-	struct uthread_tcb *ntcb;
-	// Previous running thread
-	struct uthread_tcb *ptcb;
 	// Keep track of previous thread as ptcb
-	ptcb = cthread->tcb;
+	struct uthread_tcb *ptcb = cthread->tcb;
 
-	// allocate space for ntcb
-	ntcb = malloc(sizeof ntcb);
 	// Grab the next ready thread from the ready queue
-	queue_dequeue(cthread->readyq, (void**)&ntcb);
-	// Set previous thread as blocked
-	cthread->tcb->s = blocked;
-	// Next thread will be running
-	ntcb->s = running;
-	// Set current thread as next thread
-	cthread->tcb = ntcb;
+	queue_dequeue(cthread->readyq, (void**)&cthread->tcb);
+	// Set previous thread as blocked & current as running
+	ptcb->s = blocked;
+	cthread->tcb->s = running;
 
 	// Switch to next thread context
 	uthread_ctx_switch(ptcb->context, cthread->tcb->context);
@@ -260,12 +229,11 @@ void uthread_unblock(struct uthread_tcb *uthread)
 	// Disable preemption upon entering critical section
 	preempt_disable();
 
-	// Thread is no longer blocked
+	// Thread is no longer blocked, adjust thread state
 	uthread->s = ready;
 	// Thread is put into ready queue and is avaiable to run again
 	queue_enqueue(cthread->readyq, uthread);
-	
 	// Reenable preemption upon exiting critical section
-  preempt_enable();
+	preempt_enable();
 }
 

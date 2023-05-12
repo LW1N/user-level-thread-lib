@@ -49,14 +49,11 @@ int sem_down(sem_t sem)
 	}
 	
 	// If count is 0(trying to access same var), block thread
-	while (sem->count == 0){
+	if (sem->count == 0){
 		// Grab current thread
-		struct uthread_tcb *ntcb = uthread_current();
+		// struct uthread_tcb *ntcb = uthread_current();
 		// Add thread queue(waiting list)
-		queue_enqueue(sem->queue, ntcb);
-		if (!ntcb) {
-			continue;
-		}
+		queue_enqueue(sem->queue, uthread_current());
 		// Block thread
 		uthread_block();
 	}
@@ -77,7 +74,7 @@ int sem_up(sem_t sem)
 	sem->count += 1;
 
 	// If the queue(waiting list) is empty, do nothing else
-	if(!queue_length(sem->queue)){
+	if(!sem->queue || !queue_length(sem->queue)){
 		return 0;
 	}
 
@@ -86,8 +83,12 @@ int sem_up(sem_t sem)
 	ntcb = malloc(sizeof ntcb);	
 	// Grab oldest thread in waiting list
 	queue_dequeue(sem->queue, (void**)&ntcb);
+	if(!ntcb){
+		return 0;
+	}
 	// Unblock thread and return 0
 	uthread_unblock(ntcb);
+
 	return 0;
 }
 

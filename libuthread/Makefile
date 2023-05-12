@@ -7,6 +7,14 @@ objs := queue.o uthread.o context.o sem.o preempt.o
 CC := gcc
 CFLAGS := -Wall -Wextra -Werror -MMD
 
+# Debug flag
+ifneq ($(D),1)
+CFLAGS += -O2
+else
+CFLAGS += -g
+endif
+
+
 ifneq ($(V), 1)
 Q = @
 endif

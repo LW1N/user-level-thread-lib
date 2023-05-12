@@ -8,19 +8,17 @@
 struct node{
 	// Data holds address of enqueued variable
 	void *data;
-  // Next holds the next node in the queue
+	// Next holds the next node in the queue
 	struct node* next;
 };
 
 typedef struct node node;
 
-// Queue struct to keep track of first and last items in list
+// Queue struct to keep track of first(head) and last(tail) items in list
 struct queue {
 	// Count is size of queue(# of items in queue)
 	int count;
-  // Head is first enqueued
 	node *head;
-  // Tail is last enqueued
 	node *tail;
 };
 
@@ -65,15 +63,16 @@ int queue_enqueue(queue_t queue, void *data)
 	// Allocate space for the new item to be added to queue
 	node *new_item;
 	new_item = malloc(sizeof(node));
-	new_item->data = data;
-	new_item->next = NULL;
 
 	// If malloc fails, return -1
 	if(new_item == NULL){
 		free(new_item);
 		return -1;
 	}
-	
+
+	new_item->data = data;
+	new_item->next = NULL;
+
 	// If enqueueing to an empty queue, new_item -> first in queue
 	if(queue->tail == NULL){
 		queue->head = new_item;
@@ -102,11 +101,12 @@ int queue_dequeue(queue_t queue, void **data)
 		return -1;
 	}
 
-	// store address of first item data in data
+	// Store address of first item data in data
 	*data = queue->head->data; 
 
 	// if 1 item in queue, nullify queue after dequeueing
 	if (queue->head->next == NULL) {
+		free(queue->head);
 		queue->head = NULL;
 		queue->tail = NULL;
 		queue->count--;
@@ -161,6 +161,7 @@ int queue_delete(queue_t queue, void *data)
 	// Instead of before-target-next -> before-next
 	before->next = target->next;
 
+	free(target);
 	// Delete node by setting it equal to NULL
 	target->data = NULL;
 	target->next = NULL;
