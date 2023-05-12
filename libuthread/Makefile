@@ -5,7 +5,7 @@ lib := libuthread.a
 objs := queue.o uthread.o context.o sem.o preempt.o
 
 CC := gcc
-CFLAGS := -O2 -Wall -Wextra -Werror -MMD
+CFLAGS := -Wall -Wextra -Werror -MMD
 
 ifneq ($(V), 1)
 Q = @
