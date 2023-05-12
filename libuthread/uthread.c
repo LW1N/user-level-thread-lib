@@ -125,7 +125,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
   	// Set up tcb for idle(main) thread
 	struct uthread_tcb *idle_tcb;
 	// Allocate space for the current thread & idle thread tcb
-	cthread = (struct thread *)malloc(sizeof(struct thread));
+	cthread = malloc(sizeof *cthread);
 	idle_tcb = malloc(sizeof *idle_tcb);
 
 	// Check in case of malloc failure
@@ -184,25 +184,26 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	preempt_disable();
 	preempt_stop();
 
+	struct uthread_tcb *ptcb = cthread->tcb;
+
 	// While loop to free memory and collect exited threads
 	while(queue_length(cthread->zombieq)) {
-		// Grab exited thread and store in ntcb
-		struct uthread_tcb *ntcb;
-		queue_dequeue(cthread->zombieq, (void**)&ntcb);
+		// Grab exited thread and store in cthread
+		queue_dequeue(cthread->zombieq, (void**)&cthread->tcb);
 		// Free thread stack and context pointers
-		uthread_ctx_destroy_stack(ntcb->stackpointer);
-		free(ntcb->context);
-		free(ntcb);
+		uthread_ctx_destroy_stack(cthread->tcb->stackpointer);
+		free(cthread->tcb->context);
+		free(cthread->tcb);
 	}
 
 	// Free current(now idle) thread stack and context pointers
-	uthread_ctx_destroy_stack(cthread->tcb->stackpointer);
-	free(cthread->tcb->context);
+	uthread_ctx_destroy_stack(ptcb->stackpointer);
+	free(ptcb->context);
 	// Destroy queues once done
 	queue_destroy(cthread->readyq); 
 	queue_destroy(cthread->zombieq);
 	// Free current thread
-	free(cthread);
+	free(ptcb);
 	return 0;
 }
 
