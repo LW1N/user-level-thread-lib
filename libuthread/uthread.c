@@ -131,7 +131,7 @@ int uthread_create(uthread_func_t func, void *arg)
 	if(uthread_ctx_init(newtcb->context, newtcb->stackpointer, func, arg)){
 		return -1;
 	}
-
+  
 	// Set state to ready
 	newtcb->s = ready;
 	// Enqueue new thread to the ready queue
