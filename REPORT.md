@@ -47,7 +47,10 @@ single queue that had values deleted, dequeued, or iterated through in order to
 verify that there were no issues.
 
 ## <u>Implementation of User-Level Thread API:</u>
-In order to implement a user-level thread API, we utilized  
+In order to implement a user-level thread API, we utilized uthread_tcb struct to
+keep track of each thread's thread control block which consists of a pointer to
+the top of the thread's stack, a pointer to it's context, and an integer that
+represents what state the thread is in, ready, running, exited, or blocked. 
 
 ## <u>Implementation of Semaphore API:</u>
 
