@@ -14,25 +14,25 @@ destroy function frees the allocated memory of a given queue only if that queue
 is empty. An enqueue function allocates memory for a non-null item to be 
 inserted into a non-null queue by using the pointers that keep track of the
 first item, the head, and the last item, the tail, of the queue. If the queue is
-empty, both pointers will point to this non-null item, but if the queue has items
-in it, this non-null item becomes the tail by adjusting the tail to point to the
-item as the next item in the linked list. A dequeue function grabs and removes
-the head of a non-empty non-null queue while having a given non-null pointer,
-data, point to it. Both enqueue and dequeue functions adjust the count of the
-queue accordingly. A delete function iterates through a non-null queue until it
-finds the address that a given non-null pointer points to, and removes it from 
-the queue. If the head is the part of the queue to be deleted, this function
-acts as if it were the dequeue function. Otherwise, the function utilizes two 
-local variables to parse the queue's linked list. If the item is not found, the
-function fails and returns -1, but if it is found, one of the local variables
-represent the item before the one to be deleted and the function adjusts the item
-before's link to the item after the one to be deleted so that the item is 
-deleted and the linked list remains intact. This delete function also adjusts
-the count of the queue upon successful deletion. An interate function allows for
-a given non-null function to execute on each of the items in a non-null 
-non-empty queue. It utilizes a local variable to iterate through the queue's 
-linked listfrom the head to the tail. Finally, a length function returns the 
-length of the  dqueue, which is also the overall count.
+empty, both pointers will point to this non-null item, but if the queue has 
+items in it, this non-null item becomes the tail by adjusting the tail to point
+to the item as the next item in the linked list. A dequeue function grabs and 
+removes the head of a non-empty non-null queue while having a given non-null 
+pointer, data, point to it. Both enqueue and dequeue functions adjust the count 
+of the queue accordingly. A delete function iterates through a non-null queue 
+until it finds the address that a given non-null pointer points to, and removes 
+it from the queue. If the head is the part of the queue to be deleted, this 
+function acts as if it were the dequeue function. Otherwise, the function 
+utilizes two local variables to parse the queue's linked list. If the item is 
+not found, the function fails and returns -1, but if it is found, one of the 
+local variables represent the item before the one to be deleted and the function 
+adjusts the item before's link to the item after the one to be deleted so that 
+the item is deleted and the linked list remains intact. This delete function 
+also adjusts the count of the queue upon successful deletion. An interate 
+function allows for a given non-null function to execute on each of the items 
+in a non-null non-empty queue. It utilizes a local variable to iterate through
+the queue's linked listfrom the head to the tail. Finally, a length function 
+returns the length of the queue, which is also the overall count.
 
 To test the queue, we came up with many different test cases that 
 ensure if a user makes a mistake, it will be accounted for. Some of the simpler
@@ -63,34 +63,34 @@ track of the current thread's tcb, which is now the previous thread and is
 enqueued to the ready queue, and the next thread's tcb, which will be the 
 current thread and is dequeued from the ready queue. The global thread pointer's
 tcb is then adjusted to this next thread's tcb and then these two tcb's are 
-context switched. In context switching, we activate the next thread's context and 
-then we save the previous thread's context. The exit function is very similar to 
-the yield function where instead of enqueueing the current thread's tcb to the
-ready queue, we enqueue it to the zombie queue instead. This is because when the
-exit function is called, it means that the current thread that was running has 
-finished its execution and so it has now entered a zombie state where it no 
-longer will be running again. Adding it to the zombie queue allows us to keep 
-track of the thread and be able to free it later on. The create function is for
-creating new threads which is done by creating a new tcb struct and then 
-initializing the members. The stack pointer member is initialized by allocating
-space to the size of the stack. The context is initialized by a function called 
-uthread_ctx_init that takes in the context, stack pointer, function, and 
-arguments of the thread. This function sets the context's stack and makes 
-the context using the thread library. The state member is then initialized by 
-setting its state to the ready state and adding it to the ready queue. Then in the 
-run function, the first function that is called for the thread API, we similarly
-set up the idle thread like in the create function but instead, we set its 
-context up manually because there is no function or arguments to go with the idle
-thread. As this is the first function that is run, the zombie and ready queues 
-are created and then the first thread is created with the create function. We 
-finally begin the threading process by using a while loop that continues 
-forever, until the ready queue is empty which means that there are no more 
-threads ready to be used. In this loop, the main use is to call the yield 
-function when the idle thread is running, which is done to switch to the next 
-thread that is ready to be used. We also have another while loop for when the 
-zombie queue is not empty. As previously mentioned, the zombie queue stores all
-the exited threads which always us to easily free the thread's memory in the 
-loop. The last two functions of the thread API were used with 
+context switched. In context switching, we activate the next thread's context 
+and then we save the previous thread's context. The exit function is very 
+similar to the yield function where instead of enqueueing the current thread's 
+tcb to the ready queue, we enqueue it to the zombie queue instead. This is
+because when the exit function is called, it means that the current thread that 
+was running has finished its execution and so it has now entered a zombie state 
+where it no longer will be running again. Adding it to the zombie queue allows 
+us to keep track of the thread and be able to free it later on. The create 
+function is for creating new threads which is done by creating a new tcb struct
+and then initializing the members. The stack pointer member is initialized by 
+allocating space to the size of the stack. The context is initialized by a 
+function called uthread_ctx_init that takes in the context, stack pointer, 
+function, and arguments of the thread. This function sets the context's stack 
+and makes the context using the thread library. The state member is then 
+initialized by setting its state to the ready state and adding it to the ready 
+queue. Then in the run function, the first function that is called for the 
+thread API, we similarly set up the idle thread like in the create function but 
+instead, we set its context up manually because there is no function or 
+arguments to go with the idle thread. As this is the first function that is run,
+the zombie and ready queues are created and then the first thread is created 
+with the create function. We finally begin the threading process by using a 
+while loop that continues forever, until the ready queue is empty which means 
+that there are no more threads ready to be used. In this loop, the main use is 
+to call the yield function when the idle thread is running, which is done to 
+switch to the next thread that is ready to be used. We also have another while 
+loop for when the zombie queue is not empty. As previously mentioned, the zombie 
+queue stores allthe exited threads which always us to easily free the thread's
+memory in the loop. The last two functions of the thread API were used with 
 semaphores. The block function would switch from the currently running thread to 
 the next available thread as the current thread would be in a blocked state and 
 so it cannot run anymore. The unblock function would take any unblocked threads 
