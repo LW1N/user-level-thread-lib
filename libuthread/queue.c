@@ -4,35 +4,38 @@
 
 #include "queue.h"
 
-// node struct to represent linked list of items
+// Node struct to represent linked list of items
 struct node{
-	// void *data holds address of enqueued variable
+	// Data holds address of enqueued variable
 	void *data;
+  // Next holds the next node in the queue
 	struct node* next;
 };
+
 typedef struct node node;
 
-// queue struct to hold first and last items in ll
+// Queue struct to keep track of first and last items in list
 struct queue {
-	/* TODO Phase 1 */
 	// Count is size of queue(# of items in queue)
-	// head is first enqueued, tail is last
 	int count;
+  // Head is first enqueued
 	node *head;
+  // Tail is last enqueued
 	node *tail;
 };
 
 queue_t queue_create(void)
 {
-	/* TODO Phase 1 */
 	// Allocate memory for newqueue
 	struct queue *newqueue;
 	newqueue = malloc(sizeof *newqueue);
+
 	// If malloc fails, return NULL
 	if(!newqueue){
 		return newqueue;
 	}
-	// Initialize empty queue
+
+	// Initialize and return empty queue
 	newqueue->count = 0;
 	newqueue->head = NULL;
 	newqueue->tail = NULL;
@@ -41,33 +44,37 @@ queue_t queue_create(void)
 
 int queue_destroy(queue_t queue)
 {
-	/* TODO Phase 1 */
-	/* return -1 if queue is not empty or NULL */
-	if(!queue || queue->count != 0){
+	// Return -1 if queue is NULL or not empty 
+	if(queue == NULL || queue->count != 0){
 		return -1;
 	}
 
-	/* deallocate the queue if it is empty and exists and return 0 */
+	// Free the empty queue and return 0
 	free(queue);
+	queue = NULL;
 	return 0;
 }
 
 int queue_enqueue(queue_t queue, void *data)
 {
-	/* TODO Phase 1 */
-	// Add to end of queue
+	// If queue/data are NULL, return -1
+	if(queue == NULL || data == NULL){
+		return -1;
+	}
+
+	// Allocate space for the new item to be added to queue
 	node *new_item;
 	new_item = malloc(sizeof(node));
 	new_item->data = data;
 	new_item->next = NULL;
 
-	// If queue/data are NULL or malloc fails, return -1
-	if(queue == NULL || data == NULL || new_item == NULL){
+	// If malloc fails, return -1
+	if(new_item == NULL){
+		free(new_item);
 		return -1;
 	}
-
-	// If enqueueing to an empty queue, data -> first in queue
-	// Could use tail or head
+	
+	// If enqueueing to an empty queue, new_item -> first in queue
 	if(queue->tail == NULL){
 		queue->head = new_item;
 		queue->tail = new_item;
@@ -80,19 +87,18 @@ int queue_enqueue(queue_t queue, void *data)
 	queue->tail->next = new_item;
 	queue->tail = new_item;
 
-	// Increment count to keep track of size of queue
+	// Increment count to keep track of size of queue, return 0
 	queue->count++;
 	return 0;
 }
 
 int queue_dequeue(queue_t queue, void **data)
 {
-	/* TODO Phase 1 */
-	// remove first item in queue and assign to data
-	// return -1 if queue or data is NULL and 0 if succesful
+	// Remove first item in queue and assign to data
+	// Return -1 if queue or data is NULL and 0 if succesful
 
-	// check if queue is NULL or the value of the pointer is null
-	if (queue == NULL || *data == NULL) {
+	// If queue/data is NULL or the queue is empty
+	if (queue == NULL || *data == NULL || queue->head == NULL) {
 		return -1;
 	}
 
@@ -116,9 +122,7 @@ int queue_dequeue(queue_t queue, void **data)
 
 int queue_delete(queue_t queue, void *data)
 {
-	/* TODO Phase 1 */
-	// delete first instance of data found 
-	// use pointers 
+	// Delete first instance of data found 
 
 	// Check if queue or data is NULL
 	if (queue == NULL || data == NULL) {
@@ -139,35 +143,35 @@ int queue_delete(queue_t queue, void *data)
 	target = queue->head;
 	before = target;
 
-	// Keep on iterating through linked list until the data is found or we are at the end
+	// Iterate through list until the data is found or at the end
 	while (target != NULL && target->data != data) {
-		// grab the previous node
+		// Grab the previous node
 		before = target;
-		// make temp equal to next node in ll
+		// Make target equal to next node in ll
 		target = target->next; 
 	}
 
-	// Data wasn't found
+	// If data wasn't found, return -1
 	if (target == NULL || target->data != data) {
 		return -1;
 	}
 
 
-	// we can 'delete' the target by skipping over it in the linked list
+	// We can 'delete' the target by skipping over it in the linked list
 	// Instead of before-target-next -> before-next
 	before->next = target->next;
 
-	// delete node by setting it equal to NULL
+	// Delete node by setting it equal to NULL
 	target->data = NULL;
 	target->next = NULL;
-	queue->count--;
 
+	// Decrement count of queue and return 0
+	queue->count--;
 	return 0;
 }
 
 int queue_iterate(queue_t queue, queue_func_t func)
 {
-	/* TODO Phase 1 */
 	// Check if queue or func is NULL
 	if (queue == NULL || func == NULL) {
 		return -1;
@@ -180,18 +184,18 @@ int queue_iterate(queue_t queue, queue_func_t func)
 		temp = temp->next;
 	}
 
+	// Return 0 upon success
 	return 0;
 }
 
 int queue_length(queue_t queue)
 {
-	/* TODO Phase 1 */
 	// If queue is NULL, return -1
-	if(!queue){
+	if(queue == NULL){
 		return -1;
 	}
 
-	// Else return count, which is length of queue
+	// return count, which is length of queue
 	return queue->count;
 }
 

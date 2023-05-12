@@ -2,11 +2,10 @@
 lib := libuthread.a
 
 # Variables
-objs := queue.o uthread.o context.o sem.o
+objs := queue.o uthread.o context.o sem.o preempt.o
 
 CC := gcc
-CFLAGS := -Wall -Wextra -Werror -MMD
-CFLAGS += -g
+CFLAGS := -O2 -Wall -Wextra -Werror -MMD
 
 ifneq ($(V), 1)
 Q = @

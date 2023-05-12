@@ -1,12 +1,13 @@
 # Target programs
-programs := \
-	queue_tester.x \
+programs :=       \
+	queue_tester.x  \
 	uthread_hello.x \
 	uthread_yield.x \
-	sem_simple.x \
-	sem_buffer.x \
-	sem_count.x \
-	sem_prime.x
+	sem_simple.x    \
+	sem_buffer.x    \
+	sem_count.x     \
+	sem_prime.x     \
+	test_preempt.x
 
 # User-level thread library
 UTHREADLIB := libuthread

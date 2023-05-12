@@ -120,7 +120,7 @@ static void test_complex(void)
 	TEST_ASSERT(*ptr == 1);
 	// makes sure length is 3
 	TEST_ASSERT(queue_length(q) == 3);
-	// makes sure that if we try to delete 1 from the queue it returns -1 as its already been deleted
+	// trying to delete 1 from the queue it returns -1 as its already been deleted
 	TEST_ASSERT(queue_delete(q, (int*) 1) == -1);
 	// dequeue the next two values of the queue 
 	queue_dequeue(q, (void**)&ptr);
@@ -133,15 +133,113 @@ static void test_complex(void)
 	TEST_ASSERT(queue_length(q) == 0);
 
 	int s = 2;
-	// now requeue the queue with 2
+	// now requeue with 2
 	queue_enqueue(q, &s);
 	// test the iteration function
 	queue_iterate(q, simple_iteration);
 	// now get the value in the queue which should be 50
 	queue_dequeue(q, (void**)&ptr);
+  //make sure that it is 50
 	TEST_ASSERT(*ptr == 50);
 	// now delete the queue and make sure we return 0
 	TEST_ASSERT(queue_destroy(q) == 0);
+}
+
+/* null test */
+void test_null(void)
+{
+	queue_t q;
+
+	fprintf(stderr, "*** TEST queue_null ***\n");
+
+	q = queue_create();
+
+  // trying to enqueue with NULL
+	TEST_ASSERT(queue_enqueue(q, NULL) == -1);
+}
+
+/* dequeue test */
+void test_dequeue(void)
+{
+	int data = 3, *ptr;
+  
+	queue_t q;
+
+	fprintf(stderr, "*** TEST queue_dequeue ***\n");
+
+	q = queue_create();
+
+  // enqueue 3 and then immediately dequeue it
+  queue_enqueue(q, &data);
+	queue_dequeue(q, (void**)&ptr);
+  // check if we recieve -1 for empty queue
+	TEST_ASSERT(queue_dequeue(q, (void**)&ptr) == -1);
+}
+
+/* destroy test */
+void test_destroy(void)
+{
+	int data = 3, *ptr;
+  
+	queue_t q;
+
+	fprintf(stderr, "*** TEST queue_destory ***\n");
+
+	q = queue_create();
+
+  // queue should be empty
+  TEST_ASSERT(queue_destroy(q) == 0);
+
+  // create the queue again
+  q = queue_create();
+
+  // enqueue 3 and then dequeue to make queue empty
+  queue_enqueue(q, &data);
+	queue_dequeue(q, (void**)&ptr);
+
+  // check if queue is still empty
+	TEST_ASSERT(queue_destroy(q) == 0);
+}
+
+/* queue_destroy false */
+void test_destroy_false(void)
+{
+	int data = 3, *ptr;
+  
+	queue_t q;
+
+	fprintf(stderr, "*** TEST queue_destory_false ***\n");
+
+	q = queue_create();
+
+  // enqueue 3 two times but only dequeue once, leaving the queue with count 1
+  queue_enqueue(q, &data);
+  queue_enqueue(q, &data);
+	queue_dequeue(q, (void**)&ptr);
+  // queue should not be destroyed
+	TEST_ASSERT(queue_destroy(q) == -1);
+}
+
+/* not queue */
+void test_not_queue(void)
+{
+	int data = 3, *ptr;
+  
+	queue_t q;
+
+	fprintf(stderr, "*** TEST not_queue ***\n");
+
+  // for initialization, create queue then destroy it
+  q = queue_create();
+  if (queue_destroy(q) == 0) {q = NULL;}
+
+  // check if each function returns -1 if queue is NULL
+  TEST_ASSERT(queue_enqueue(q, &data) == -1);
+  TEST_ASSERT(queue_dequeue(q, (void**)&ptr) == -1);
+  TEST_ASSERT(queue_destroy(q) == -1);
+  TEST_ASSERT(queue_delete(q, &data) == -1);
+  TEST_ASSERT(queue_length(q) == -1);
+  TEST_ASSERT(queue_iterate(q, iterator_inc) == -1);
 }
 
 
@@ -152,6 +250,11 @@ int main(void)
 	test_iterator();
 	test_delete();
 	test_complex();
-
+  test_null();
+  test_dequeue();
+  test_destroy();
+  test_destroy_false();
+  test_not_queue();
+  
 	return 0;
 }
